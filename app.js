@@ -223,6 +223,7 @@
     activeTab: 'tab-overview',
     ticketFilter: 'all',
     monitorFilter: 'all',
+    showOnlyIssuesInMonitor: false,
     assetFilterType: 'all',
     assetFilterStatus: 'all',
     assetSearchQuery: '',
@@ -279,12 +280,14 @@
     const ctx = canvas.getContext('2d');
 
     function draw() {
-      // Set responsive size
-      canvas.width = canvas.parentElement.clientWidth - 32;
+      const parent = canvas.parentElement;
+      const parentW = parent ? parent.clientWidth : 300;
+      canvas.width = Math.max(120, parentW - 32);
       canvas.height = 70;
 
       const w = canvas.width;
       const h = canvas.height;
+      if (w <= 0 || h <= 0) return;
 
       ctx.clearRect(0, 0, w, h);
 
@@ -479,12 +482,25 @@
     if (!tbody) return;
 
     let items = state.assets;
+    if (state.showOnlyIssuesInMonitor) {
+      items = items.filter(a => a.status !== 'Active' || a.loss !== '0%');
+    }
     if (state.monitorFilter !== 'all') {
-      items = items.filter(a => a.location.toLowerCase().includes(state.monitorFilter.toLowerCase()));
+      items = items.filter(a => (a.location || '').toLowerCase().includes(state.monitorFilter.toLowerCase()));
     }
     if (state.globalSearchQuery) {
       const q = state.globalSearchQuery.toLowerCase();
-      items = items.filter(a => a.name.toLowerCase().includes(q) || a.ip.includes(q) || a.location.toLowerCase().includes(q));
+      items = items.filter(a => 
+        (a.name || '').toLowerCase().includes(q) || 
+        (a.ip || '').includes(q) || 
+        (a.location || '').toLowerCase().includes(q) ||
+        (a.tag || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-muted-xs">Tidak ada node yang sesuai kriteria pencarian / filter.</td></tr>`;
+      return;
     }
 
     tbody.innerHTML = items.map(item => {
@@ -499,8 +515,8 @@
           </td>
           <td><strong>${item.name}</strong><br><small class="mono text-muted-xs">${item.tag}</small></td>
           <td class="mono text-cyan">${item.ip}</td>
-          <td>${item.location}</td>
-          <td class="text-muted-xs">${item.specs.split(',')[0]}</td>
+          <td>${item.location || '-'}</td>
+          <td class="text-muted-xs">${(item.specs || '').split(',')[0]}</td>
           <td class="mono font-bold ${item.latency > 50 ? 'text-rose' : 'text-green'}">${item.latency} ms</td>
           <td class="mono ${item.loss !== '0%' ? 'text-rose font-bold' : 'text-muted-xs'}">${item.loss}</td>
           <td class="text-muted-xs">${item.lastChecked}</td>
@@ -529,11 +545,22 @@
     }
     if (state.assetSearchQuery) {
       const q = state.assetSearchQuery.toLowerCase();
-      items = items.filter(a => a.name.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q) || a.ip.includes(q) || a.mac.toLowerCase().includes(q));
+      items = items.filter(a => 
+        (a.name || '').toLowerCase().includes(q) || 
+        (a.tag || '').toLowerCase().includes(q) || 
+        (a.ip || '').includes(q) || 
+        (a.mac || '').toLowerCase().includes(q) ||
+        (a.location || '').toLowerCase().includes(q)
+      );
     }
     if (state.globalSearchQuery) {
       const q = state.globalSearchQuery.toLowerCase();
-      items = items.filter(a => a.name.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q) || a.ip.includes(q) || a.location.toLowerCase().includes(q));
+      items = items.filter(a => 
+        (a.name || '').toLowerCase().includes(q) || 
+        (a.tag || '').toLowerCase().includes(q) || 
+        (a.ip || '').includes(q) || 
+        (a.location || '').toLowerCase().includes(q)
+      );
     }
 
     if (items.length === 0) {
@@ -546,17 +573,17 @@
         <td class="mono font-bold text-cyan">${item.tag}</td>
         <td>
           <div style="font-weight: 600;">${item.name}</div>
-          <div class="text-muted-xs">${item.admin}</div>
+          <div class="text-muted-xs">${item.admin || '-'}</div>
         </td>
         <td><span class="pill pill-cyan">${item.category}</span></td>
         <td>
           <div class="mono font-bold">${item.ip}</div>
           <div class="mono text-muted-xs">${item.mac || '-'}</div>
         </td>
-        <td>${item.location}</td>
-        <td class="text-muted-xs" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.specs}">${item.specs}</td>
+        <td>${item.location || '-'}</td>
+        <td class="text-muted-xs" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.specs || ''}">${item.specs || '-'}</td>
         <td>
-          <span class="status-tag ${item.status.toLowerCase()}">
+          <span class="status-tag ${(item.status || 'Active').toLowerCase()}">
             <span class="status-dot ${item.status === 'Active' ? 'online' : 'offline'}"></span>
             ${item.status}
           </span>
@@ -603,7 +630,14 @@
     }
     if (state.globalSearchQuery) {
       const q = state.globalSearchQuery.toLowerCase();
-      items = items.filter(t => t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || t.requester.toLowerCase().includes(q) || t.location.toLowerCase().includes(q));
+      items = items.filter(t => 
+        (t.title || '').toLowerCase().includes(q) || 
+        (t.id || '').toLowerCase().includes(q) || 
+        (t.requester || '').toLowerCase().includes(q) || 
+        (t.location || '').toLowerCase().includes(q) ||
+        (t.desc || '').toLowerCase().includes(q) ||
+        (t.technician || '').toLowerCase().includes(q)
+      );
     }
 
     if (items.length === 0) {
@@ -787,13 +821,20 @@
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tabId);
       });
+      document.querySelectorAll('.mb-nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+      });
       document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.toggle('active', pane.id === tabId);
       });
       state.activeTab = tabId;
 
-      // Close mobile drawer if open
+      // Close mobile drawer & backdrop
       document.getElementById('sidebar')?.classList.remove('mobile-open');
+      document.getElementById('sidebar-backdrop')?.classList.remove('active');
+
+      // Scroll smoothly to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (tabId === 'tab-toolbox') {
         calculateSubnet();
@@ -960,6 +1001,22 @@
       link.click();
       URL.revokeObjectURL(url);
       showToast('Full backup JSON berhasil diekspor.', 'success');
+    },
+
+    printReport: function () {
+      try {
+        window.print();
+      } catch (e) {
+        showToast('Pencetakan tidak didukung di webview perangkat ini. Silakan gunakan ekspor CSV / Backup.', 'alert');
+      }
+    },
+
+    printLabel: function () {
+      try {
+        window.print();
+      } catch (e) {
+        showToast('Gunakan screenshot layar untuk menyimpan dan mencetak label ini di HP.', 'info');
+      }
     }
   };
 
@@ -972,9 +1029,30 @@
       });
     });
 
-    // 2. Mobile toggle
+    // 2. Mobile drawer & backdrop
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+
     document.getElementById('btn-mobile-toggle')?.addEventListener('click', () => {
-      document.getElementById('sidebar')?.classList.toggle('mobile-open');
+      sidebar?.classList.toggle('mobile-open');
+      backdrop?.classList.toggle('active');
+    });
+
+    document.getElementById('btn-sidebar-close')?.addEventListener('click', () => {
+      sidebar?.classList.remove('mobile-open');
+      backdrop?.classList.remove('active');
+    });
+
+    backdrop?.addEventListener('click', () => {
+      sidebar?.classList.remove('mobile-open');
+      backdrop?.classList.remove('active');
+    });
+
+    // 2b. Mobile Bottom Nav buttons
+    document.querySelectorAll('.mb-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.NetDesk.switchTab(btn.dataset.tab);
+      });
     });
 
     // 3. Quick buttons in header
@@ -1007,7 +1085,7 @@
     });
 
     document.getElementById('btn-print-audit-report')?.addEventListener('click', () => {
-      window.print();
+      window.NetDesk.printReport();
     });
 
     // 4. KPI Card shortcuts
@@ -1033,15 +1111,23 @@
     });
 
     document.getElementById('btn-filter-offline')?.addEventListener('click', () => {
-      state.assets.forEach(a => {
-        if (a.status !== 'Active') a.status = 'Active';
-      });
-      // Toggle PC-14 as offline for demonstration
-      const p14 = state.assets.find(a => a.tag === 'PC-TKJ-14');
-      if (p14) p14.status = 'Broken';
-      persistData();
-      renderAll();
-      showToast('Menampilkan node jaringan yang mengalami gangguan', 'alert');
+      state.showOnlyIssuesInMonitor = !state.showOnlyIssuesInMonitor;
+      const btn = document.getElementById('btn-filter-offline');
+      if (btn) {
+        const span = btn.querySelector('span');
+        if (state.showOnlyIssuesInMonitor) {
+          btn.classList.add('active', 'btn-primary');
+          btn.classList.remove('btn-secondary');
+          if (span) span.textContent = 'Tampilkan Semua Node';
+          showToast('Menampilkan node jaringan yang mengalami gangguan / degradasi.', 'alert');
+        } else {
+          btn.classList.remove('active', 'btn-primary');
+          btn.classList.add('btn-secondary');
+          if (span) span.textContent = 'Hanya Tampilkan Masalah';
+          showToast('Menampilkan seluruh node jaringan.', 'info');
+        }
+      }
+      renderMonitorTable();
     });
 
     // 7. Asset Filters

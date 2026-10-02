@@ -2,15 +2,23 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#080c14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>NetDesk TKJ - IT Helpdesk & Network Asset Management</title>
   <meta name="description" content="Sistem Terpadu Manajemen Aset Jaringan, Monitoring Node & IT Helpdesk Ticketing untuk Laboratorium TKJ dan Operasional Perkantoran.">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- MOBILE DRAWER BACKDROP -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <div class="app-layout">
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
@@ -27,6 +35,7 @@
           <h1>NetDesk <span>TKJ</span></h1>
           <p>IT Infrastructure & Support</p>
         </div>
+        <button class="sidebar-close-btn" id="btn-sidebar-close" aria-label="Tutup Menu">&times;</button>
       </div>
 
       <div class="operator-card">
@@ -468,6 +477,11 @@
                   <div class="form-group">
                     <label>Prefix Subnet (CIDR):</label>
                     <select id="calc-cidr" class="form-select">
+                      <option value="8">/8 - 255.0.0.0 (16,777,214 Host)</option>
+                      <option value="16">/16 - 255.255.0.0 (65,534 Host)</option>
+                      <option value="20">/20 - 255.255.240.0 (4,094 Host)</option>
+                      <option value="22">/22 - 255.255.252.0 (1,022 Host)</option>
+                      <option value="23">/23 - 255.255.254.0 (510 Host)</option>
                       <option value="24">/24 - 255.255.255.0 (254 Host)</option>
                       <option value="25">/25 - 255.255.255.128 (126 Host)</option>
                       <option value="26" selected>/26 - 255.255.255.192 (62 Host)</option>
@@ -475,7 +489,6 @@
                       <option value="28">/28 - 255.255.255.240 (14 Host)</option>
                       <option value="29">/29 - 255.255.255.248 (6 Host)</option>
                       <option value="30">/30 - 255.255.255.252 (2 Host PTP)</option>
-                      <option value="16">/16 - 255.255.0.0 (65,534 Host)</option>
                     </select>
                   </div>
                 </div>
@@ -742,13 +755,37 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-close="modal-qr">Tutup</button>
-        <button type="button" class="btn btn-primary" onclick="window.print()">
+        <button type="button" class="btn btn-primary" onclick="window.NetDesk.printLabel()">
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
           Cetak Label
         </button>
       </div>
     </div>
   </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mb-nav-item active" data-tab="tab-overview">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <span>Overview</span>
+    </button>
+    <button class="mb-nav-item" data-tab="tab-monitor">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <span>Monitor</span>
+    </button>
+    <button class="mb-nav-item" data-tab="tab-assets">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+      <span>Aset</span>
+    </button>
+    <button class="mb-nav-item" data-tab="tab-tickets">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      <span>Tiket</span>
+    </button>
+    <button class="mb-nav-item" data-tab="tab-toolbox">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
+      <span>Toolbox</span>
+    </button>
+  </nav>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div class="toast-container" id="toast-container"></div>
