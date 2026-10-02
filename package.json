@@ -1,0 +1,26 @@
+{
+  "name": "netdesk-tkj",
+  "version": "1.0.0",
+  "description": "Sistem Manajemen Infrastruktur Jaringan & IT Helpdesk Troubleshooting TKJ",
+  "main": "app.js",
+  "scripts": {
+    "build": "mkdir -p www && cp index.html style.css app.js icon.svg manifest.json www/",
+    "cap:sync": "npm run build && npx cap sync android",
+    "cap:open": "npx cap open android",
+    "build:apk": "npm run cap:sync && cd android && ANDROID_HOME=/home/nza/Android/Sdk ./gradlew assembleDebug"
+  },
+  "keywords": [
+    "tkj",
+    "it-helpdesk",
+    "network-monitoring",
+    "android",
+    "capacitor"
+  ],
+  "author": "Muhammad Fariz Ramadhan",
+  "license": "ISC",
+  "devDependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4"
+  }
+}

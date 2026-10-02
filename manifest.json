@@ -1,0 +1,16 @@
+{
+  "name": "NetDesk TKJ - IT Support & Asset Management",
+  "short_name": "NetDesk TKJ",
+  "description": "Sistem Manajemen Aset Jaringan & IT Helpdesk Troubleshooting TKJ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080c14",
+  "theme_color": "#00f0ff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
